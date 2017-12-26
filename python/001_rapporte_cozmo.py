@@ -45,7 +45,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     robot.drive_straight(distance_mm(150), speed_mmps(50)).wait_for_completed()
     robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabDog).wait_for_completed()
     
-	# Se connecter aux différents cubes et les faire clignoter en jaune
+    # Se connecter aux différents cubes et les faire clignoter en jaune
     robot.world.get_light_cube(LightCube1Id).set_lights(light_yellow.flash())
     robot.world.get_light_cube(LightCube2Id).set_lights(light_yellow.flash())
     robot.world.get_light_cube(LightCube3Id).set_lights(light_yellow.flash())
