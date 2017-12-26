@@ -33,22 +33,24 @@ from cozmo.util import degrees, distance_mm, speed_mmps
 	
 def cozmo_program(robot: cozmo.robot.Robot):
 
-	# Se connecter aux différents cubes et les faire clignoter en jaune
+    # Définir la couleur jaune
     light_yellow = Light(Color(name='yellow', rgb = (255, 255, 0)))
-    robot.world.get_light_cube(LightCube1Id).set_lights(light_yellow.flash())
-    robot.world.get_light_cube(LightCube2Id).set_lights(light_yellow.flash())
-    robot.world.get_light_cube(LightCube3Id).set_lights(light_yellow.flash())
 
     # Tourner jusqu'a détecter un visage
     lookaround = robot.start_behavior(cozmo.behavior.BehaviorTypes.FindFaces)
     face = robot.world.wait_for_observed_face()
     lookaround.stop()
 
-	# Jouer l'animation du Chien
+    # Jouer l'animation du Chien
     robot.drive_straight(distance_mm(150), speed_mmps(50)).wait_for_completed()
     robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabDog).wait_for_completed()
     
-	# Attendre jusqu'a ce qu'un cube soit touché
+	# Se connecter aux différents cubes et les faire clignoter en jaune
+    robot.world.get_light_cube(LightCube1Id).set_lights(light_yellow.flash())
+    robot.world.get_light_cube(LightCube2Id).set_lights(light_yellow.flash())
+    robot.world.get_light_cube(LightCube3Id).set_lights(light_yellow.flash())
+
+    # Attendre jusqu'a ce qu'un cube soit touché
     target = robot.world.wait_for(cozmo.objects.EvtObjectTapped)
     cube = robot.world.get_light_cube(target.obj.cube_id)
     cube.set_lights(light_yellow)
@@ -73,7 +75,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
         found = tface is face
     lookaround.stop()
 
-	# Se déplacer vers le visage poser le cube 
+    # Se déplacer vers le visage poser le cube 
     robot.drive_straight(distance_mm(200), speed_mmps(50)).wait_for_completed()
     robot.move_lift(-3)
     robot.drive_straight(distance_mm(-100), speed_mmps(50)).wait_for_completed()
