@@ -16,11 +16,11 @@
 
 '''Le Tour Rapporte COZMO en Python
 
-Ce script permet à COZMO de se conporter comme un chien qui joue à la
+Ce script permet à COZMO de se comporter comme un chien qui joue à la
 balle.
 
 COZMO va repérer un vizage humain, puis se dirriger vers lui, il va alors
-jouer l'annimation correspondant à l'annimal, attendre qu'on lui indique 
+jouer l'annimation correspondant à l'animal, attendre qu'on lui indique 
 un cube à aller cercher, puis aller le rammasser et le rapporter. 
 '''
 
