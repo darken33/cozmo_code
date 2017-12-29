@@ -20,7 +20,7 @@ Ce script permet à COZMO de se comporter comme un chien qui joue à la
 balle.
 
 COZMO va repérer un vizage humain, puis se dirriger vers lui, il va alors
-jouer l'annimation correspondant à l'animal, attendre qu'on lui indique 
+jouer l'animation correspondant à l'animal, attendre qu'on lui indique 
 un cube à aller cercher, puis aller le rammasser et le rapporter. 
 '''
 
@@ -35,6 +35,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     # Définir la couleur jaune
     light_yellow = Light(Color(name='yellow', rgb = (255, 255, 0)))
+    light_cyan = Light(Color(name='cyan', rgb = (0, 255, 255)))
 
     # Tourner jusqu'a détecter un visage
     lookaround = robot.start_behavior(cozmo.behavior.BehaviorTypes.FindFaces)
@@ -53,6 +54,9 @@ def cozmo_program(robot: cozmo.robot.Robot):
     # Attendre jusqu'a ce qu'un cube soit touché
     target = robot.world.wait_for(cozmo.objects.EvtObjectTapped)
     cube = robot.world.get_light_cube(target.obj.cube_id)
+    robot.world.get_light_cube(LightCube1Id).set_lights(light_cyan)
+    robot.world.get_light_cube(LightCube2Id).set_lights(light_cyan)
+    robot.world.get_light_cube(LightCube3Id).set_lights(light_cyan)
     cube.set_lights(light_yellow)
 	
     # Tourner jusqu'a détecter le cube
@@ -66,7 +70,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     # Rammasser le cube
     robot.dock_with_cube(cube, approach_angle=cozmo.util.degrees(180), num_retries=3).wait_for_completed()
     robot.move_lift(0.2)
-
+ 	
     # Tourner jusqu'a détecter de nouvea le visage précédent
     found = False;
     lookaround = robot.start_behavior(cozmo.behavior.BehaviorTypes.FindFaces)
@@ -78,6 +82,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     # Se déplacer vers le visage poser le cube 
     robot.drive_straight(distance_mm(200), speed_mmps(50)).wait_for_completed()
     robot.move_lift(-3)
+    robot.move_lift(0)
     robot.drive_straight(distance_mm(-100), speed_mmps(50)).wait_for_completed()
     robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabDog).wait_for_completed()
 
