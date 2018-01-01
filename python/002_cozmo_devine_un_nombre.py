@@ -25,6 +25,7 @@ ou celui indiqué par COZMO (cube vert).
 '''
 
 import time
+import math
 import random
 
 import cozmo
@@ -59,8 +60,9 @@ def cozmo_program(robot: cozmo.robot.Robot):
         robot.play_anim_trigger(cozmo.anim.Triggers.AcknowledgeFaceUnnamed).wait_for_completed()
         robot.say_text("Bonjour").wait_for_completed()
  
-    # Donner les explications du jeu 
-    robot.say_text("Je vais deviner un nombre entre {} et {}." format(min_number, max_number)).wait_for_completed()
+    # Donner les explications du jeu
+    text =  "Je vais deviner un nombre entre " + str(min_number) + " et " + str(max_number) + "."
+    robot.say_text(text).wait_for_completed()
     robot.say_text("Bleu si plus grand.").wait_for_completed()
     robot.world.get_light_cube(LightCube1Id).set_lights(light_blue)
     robot.say_text("Jaune si plus petit.").wait_for_completed()
@@ -75,7 +77,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     # Attendre jusqu'a ce qu'un cube soit touché
     ready = False
     while ready is False:
-		target = robot.world.wait_for(cozmo.objects.EvtObjectTapped)
+        target = robot.world.wait_for(cozmo.objects.EvtObjectTapped)
         cube = robot.world.get_light_cube(target.obj.cube_id)
         ready = cube.cube_id is LightCube3Id
  	
@@ -86,7 +88,8 @@ def cozmo_program(robot: cozmo.robot.Robot):
     
     # Boucle de jeu
     while found is False and cheated is False:
-        turn++
+        turn+=1
+        robot.drive_straight(distance_mm(-30), speed_mmps(50)).wait_for_completed()
         robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabThinking).wait_for_completed()
         robot.say_text(str(number)).wait_for_completed()
         target = robot.world.wait_for(cozmo.objects.EvtObjectTapped)
@@ -96,9 +99,11 @@ def cozmo_program(robot: cozmo.robot.Robot):
             robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabHappy).wait_for_completed()
             found = True
         elif cube.cube_id is LightCube1Id:
+            robot.say_text("Plus grand ?").wait_for_completed()
             robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabUnhappy).wait_for_completed()
             min_number = number + 1
         elif cube.cube_id is LightCube2Id:
+            robot.say_text("Plus petit ?").wait_for_completed()
             robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabUnhappy).wait_for_completed()
             max_number = number - 1
         else:
@@ -108,11 +113,12 @@ def cozmo_program(robot: cozmo.robot.Robot):
             cheated = True	
         # Tenter de générer un nouveau nombre 
         elif found is False:	
-            number = math.round((min_number + max_number) / 2)		
+            number = round((min_number + max_number) / 2)		
 
     # Si COZMO à trouvé
     if found is True:
-        robot.say_text("{} essais." format(turn)).wait_for_completed()
+        text = str(turn) + " essais." 
+        robot.say_text(text).wait_for_completed()
         robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabWin).wait_for_completed()
     else:
         robot.say_text("Tu as triché").wait_for_completed()
