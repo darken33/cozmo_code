@@ -16,6 +16,8 @@
 
 '''Test des Event Handler de COZMO'''
 
+import time
+
 import cozmo
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id
 from cozmo.lights import Color, Light
@@ -25,22 +27,39 @@ from cozmo.util import degrees, distance_mm, speed_mmps
 idx1 = 0
 idx2 = 0
 idx3 = 0	
+robot = None
+color = []
 
-def cube1Tapped():
-    idx1 += 1
-    raise events.StopProgation
+def cubeTapped(evt, *, obj, tap_count, tap_duration, tap_intensity, **kwargs):
+    global idx1
+    global idx2
+    global idx3    
+    global robot    
+    global color
+    if (obj.cube_id is LightCube1Id):
+        idx1 += 1
+        robot.world.get_light_cube(LightCube1Id).set_lights(color[idx1])
+    elif (obj.cube_id is LightCube2Id):    
+        idx2 += 1
+        robot.world.get_light_cube(LightCube2Id).set_lights(color[idx2])
+    elif (obj.cube_id is LightCube3Id):    
+        idx3 += 1
+        robot.world.get_light_cube(LightCube3Id).set_lights(color[idx3])
+   
+def cozmo_program(_robot: cozmo.robot.Robot):
 
-def cube2Tapped():
-    idx2 += 1
-    raise events.StopProgation
-
-def cube3Tapped():
-    idx3 += 1
-    raise events.StopProgation
+    global idx1
+    global idx2
+    global idx3    
+    global robot
+    global color
     
-def cozmo_program(robot: cozmo.robot.Robot):
-
-    colors = [
+    idx1 = 0
+    idx2 = 0
+    idx3 = 0
+    robot = _robot
+    
+    color = [
         Light(Color(rgb = (0, 0, 0))),
         Light(Color(rgb = (0, 0, 255))),
         Light(Color(rgb = (0, 255, 0))),
@@ -51,23 +70,17 @@ def cozmo_program(robot: cozmo.robot.Robot):
         Light(Color(rgb = (255, 255, 255)))
     ]
     
-    cube1 = robot.world.get_light_cube(LightCube1Id)
-    cube1.add_event_handler(cozmo.objects.EvtObjectTapped, cube1Tapped)
-         
+    cube1 = robot.world.get_light_cube(LightCube1Id)      
     cube2 = robot.world.get_light_cube(LightCube2Id)
-    cube2.add_event_handler(cozmo.objects.EvtObjectTapped, cube2Tapped)
-
     cube3 = robot.world.get_light_cube(LightCube3Id)
-    cube3.add_event_handler(cozmo.objects.EvtObjectTapped, cube3Tapped)
     
-    lookaround = robot.start_behavior(cozmo.behavior.BehaviorTypes.FindFaces)
+    robot.world.add_event_handler(cozmo.objects.EvtObjectTapped, cubeTapped)
+#    lookaround = robot.start_behavior(cozmo.behavior.BehaviorTypes.FindFaces)
 
     while idx1 < 8 and  idx2 < 8 and idx3 < 8:
-        cube1.set_lights(color[idx1])
-        cube2.set_lights(color[idx2])
-        cube3.set_lights(color[idx3])
-
-    lookaround.stop()
+        time.sleep(1)
+        
+#    lookaround.stop()
     
 cozmo.run_program(cozmo_program, use_viewer=True)
     
