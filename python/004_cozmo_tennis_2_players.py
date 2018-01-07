@@ -48,10 +48,87 @@ cube2 = None
 cube3 = None
 
 ready = False
+scj1 = 0
+scj2 = 0
+service = 1
 
 def isReady(evt, *, obj, tap_count, tap_duration, tap_intensity, **kwargs):
     global ready
     ready = True
+
+def cubeTapped(evt, *, obj, tap_count, tap_duration, tap_intensity, **kwargs):
+    global ready
+    global ball_direction
+    global ball_position
+    global ball_speed
+    global ready
+    global service
+    global scj1
+    global scj2
+    # joueur 1
+    if (obj.cube_id is LightCube1Id):
+        if (ball_direction == -1):
+            # Fond de court on ralenti la balle
+            if (ball_position == 0):
+                ball_direction = 1
+                if (ball_speed < 0.5):
+                    ball_speed += 0.1
+            # Milieu de court 
+            elif (ball_position == 1):
+                ball_direction = 1
+            # Au filet on accélère la balle 
+            elif (ball_position == 2):
+                ball_direction = 1
+                if (ball_speed > 0.1):
+                    ball_speed -= 0.1
+            else:
+                # Frappe au mauvais moment
+                scj2 += 1
+                service = 1
+                ball_position = 0
+                ball_direction = 1
+                ball_speed = 0.5
+                ready = True	    
+        else:
+            # Frappe au mauvais moment
+            scj2 += 1
+            service = 1
+            ball_position = 0
+            ball_direction = 1
+            ball_speed = 0.5
+            ready = True	    
+    # joueur 2
+    elif (obj.cube_id is LightCube3Id):
+        if (ball_direction == 1):
+            # Fond de court on ralenti la balle
+            if (ball_position == 6):
+                ball_direction = -1
+                if (ball_speed < 0.5):
+                    ball_speed += 0.1
+            # Milieu de court 
+            elif (ball_position == 5):
+                ball_direction = -1
+            # Au filet on accélère la balle 
+            elif (ball_position == 4):
+                ball_direction = -1
+                if (ball_speed > 0.1):
+                    ball_speed -= 0.1
+            else:
+                # Frappe au mauvais moment
+                scj1 += 1
+                service = 2
+                ball_position = 6
+                ball_direction = -1
+                ball_speed = 0.5
+                ready = True	    
+        else:
+            # Frappe au mauvais moment
+            scj1 += 1
+            service = 2
+            ball_position = 6
+            ball_direction = -1
+            ball_speed = 0.5
+            ready = True	    
     
 def draw_field_intro():
     # variables globales
@@ -68,21 +145,21 @@ def draw_field_intro():
     cube1.set_lights(light_off)
     cube2.set_lights(light_off)
     cube3.set_lights(light_off)
-    time.sleep(1)	
+    time.sleep(0.5)	
     cube1.set_light_corners(light_red, light_off, light_off, light_off)
-    time.sleep(1)
+    time.sleep(0.5)	
     cube1.set_light_corners(light_red, light_off, light_red, light_off)
-    time.sleep(1)
+    time.sleep(0.5)	
     cube2.set_light_corners(light_red, light_off, light_off, light_off)
-    time.sleep(1)
+    time.sleep(0.5)	
     cube2.set_light_corners(light_red, light_gray, light_off, light_gray)
-    time.sleep(1)
+    time.sleep(0.5)	
     cube2.set_light_corners(light_red, light_gray, light_blue, light_gray)
-    time.sleep(1)
+    time.sleep(0.5)	
     cube3.set_light_corners(light_blue, light_off, light_off, light_off)
-    time.sleep(1)
+    time.sleep(0.5)	
     cube3.set_light_corners(light_blue, light_off, light_blue, light_off)
-    time.sleep(1)
+    time.sleep(0.5)	
 
 def draw_field():
     # variables globales
@@ -139,6 +216,9 @@ def cozmo_program(_robot: cozmo.robot.Robot):
     global ball_position
     global ball_speed
     global ready
+    global service
+    global scj1
+    global scj2
      
     robot = _robot
     # Les cubes représentent le terrain de jeu
@@ -170,8 +250,59 @@ def cozmo_program(_robot: cozmo.robot.Robot):
         elif (ball_position == 6):
             ball_direction=-1
         ball_position += ball_direction
+    robot.world.remove_event_handler(cozmo.objects.EvtObjectTapped, isReady)
     robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabYes).wait_for_completed()
-			        
-    time.sleep(10)
+     
+    # boucle de jeu
+    service = 1
+    ball_position = 0
+    ball_direction = 1
+    while (scj1<5 and scj2<5):
+        # Attendre le service
+        ready = False
+        if (service == 1):
+            ball_position = 0
+        else:
+            ball_position = 6	
+        while (ready is False):
+            draw_field()
+            draw_ball()
+            target = robot.world.wait_for(cozmo.objects.EvtObjectTapped)
+            if ((target.obj.cube_id is LightCube1Id and service == 1) or (target.obj.cube_id is LightCube3Id and service == 2)):
+                ready = True
+        # Echange
+        ready = False
+        robot.world.add_event_handler(cozmo.objects.EvtObjectTapped, cubeTapped)
+        while (ready is False):
+            draw_field()
+            draw_ball()
+            time.sleep(ball_speed)
+            ball_position += ball_direction
+            if (ball_position < 0):
+                scj2 += 1
+                service = 1
+                ball_position = 0
+                ball_direction = 1
+                ball_speed = 0.5
+                ready = True
+            elif (ball_position > 6):
+                scj1 += 1
+                service = 2
+                ball_position = 6
+                ball_direction = -1
+                ball_speed = 0.5
+                ready = True
+        # un point a été marqué
+        robot.world.remove_event_handler(cozmo.objects.EvtObjectTapped, cubeTapped)
+        robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabYes).wait_for_completed()
+        robot.say_text(str(scj1) + " à " + str(scj2)).wait_for_completed()    
+    
+    # Fin de partie			
+    if (scj1 >= 5):
+        robot.say_text("Vainqueur joueur 1 !").wait_for_completed()    
+    else:
+        robot.say_text("Vainqueur joueur 2 !").wait_for_completed()    
+    robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabWin).wait_for_completed()
+    time.sleep(1)
 	
 cozmo.run_program(cozmo_program, use_viewer=True)
